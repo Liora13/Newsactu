@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -169,6 +170,41 @@ class AdminCintrollerController extends AbstractController
 
         $this->addFlash('success', "L'article a bien été archivé.");
         return $this->redirectToRoute('show_dashboard');
+    }# end function softDelete
+
+    /**
+     * @Route("/restaurer-un-article_{_id}", name="restore_article", methods={"GET"})
+     */
+
+    public function restoreArticle(Article $article, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        $article->setDeletedAt(null);
+
+        $entityManager->persist($article);
+        $entityManager->flush();
+
+        $this->addFlash('success', "L'article a bien été archivé.");
+        return $this->redirectToRoute('show_dashboard');
+
     }
+    /**
+     * @Route("/{cat_alias}/{article_alias}_{id}", name="show_article", methods={"GET"})
+     */
+    public function showArticle(Article $article): Response
+    {
+        return $this->render("");
+    }
+
+      /**
+     * @Route("/voir-les-articles-archives", name="show_trash", methods={"GET"})
+     */
+    public function showTrash(EntityManagerInterface $entityManager): Response
+    {
+        $archivedArticles = $entityManager->getRepository(Article::class)->findByTrash();
+
+        return $this->render("admin/trash/article_trash.html.twig", [
+            'archivedArticles' => $archivedArticles
+        ]);
+    }    
 
 } # end class
