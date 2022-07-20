@@ -7,6 +7,7 @@ use App\Form\ArticleFormType;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -27,6 +28,18 @@ class AdminCintrollerController extends AbstractController
      */
     public function showDashboard(EntityManagerInterface $entityManager): Response
     {
+       # 2ème façon de bloquer un accès à un user en fonction de son rôle
+       # (la première se trouve dans "access control" -> config/packages/security.yaml)
+        // Ce bloc de code vous permet de vérifier si le rôle du user est ADMIN, sinon cela lance une
+        // une erreur, qui est attrapée dans le catch et cela redirige avec un message dans une partie
+        // autorisée pour les différents rôles.
+        try {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        } catch (AccessDeniedException $exception) {
+            $this->addFlash('waring', 'Cette parite du site est réservée aux admins');
+            return $this->redirectToRoute('default_home');
+        }
+
         $articles = $entityManager->getRepository(Article::class)->findBy(['deletedAt' => null]);
 
         return $this->render("admin/show_dashboard.html.twig", [
@@ -206,5 +219,23 @@ class AdminCintrollerController extends AbstractController
             'archivedArticles' => $archivedArticles
         ]);
     }    
+    /**
+     * @Route("/supprimer-un-article_{id}", name="hard_delete_article", methods={"GET"})
+     */
+    public function hardDeletedArticle(Article $article, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        // Suppression manuelle de la photo
+        $photo = $article->getPhoto();
+        // on utilise la fonction native de PHP unlink() pour supprimer un fichier dans le filesystem.
+        if($photo) {
+            unlink($this->getParameter('uploads_dir'). '/' . $photo );
+        }
+
+        $entityManager->remove($article);
+        $entityManager->flush();
+
+        $this->addFlash('success', "L'article a bien été supprimé de la base de donnée");
+        return $this->redirectToRoute('show_trash');
+    }
 
 } # end class
