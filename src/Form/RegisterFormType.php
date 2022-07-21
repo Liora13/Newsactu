@@ -29,7 +29,8 @@ class RegisterFormType extends AbstractType
                 'label' => 'Nom'
             ])
             ->add('submit', SubmitType::class, [
-                'label' => false,
+                'label' => 'Valider',
+                'validate' => false,
                 'attr' => [
                     'class' => 'd-block col-3 my-3 mx-auto btn btn-success'
                 ]

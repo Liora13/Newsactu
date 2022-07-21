@@ -25,11 +25,12 @@
         </li>
         {% endif %}
         {# -----------DROPDOWN------------- #}
+        {% if is_granted("ROLE_ADMIN") %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Espace Admin
           </a>
-          {% if is_granted("ROLE_ADMIN") %}
+          
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="{{ path('show_dashboard') }}">Dashboard</a></li>
             <li><a class="dropdown-item" href="{{ path('create_article') }}">Ajouter un article</a></li>
