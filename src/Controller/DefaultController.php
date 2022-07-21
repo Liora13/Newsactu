@@ -2,17 +2,25 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\Article;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class DefaultController extends AbstractController
 {
     /**
      * @Route("/", name="default_home", methods={"GET"})
      */
-    public function home(): Response
-    {
-        return $this->render("default/home.html.twig");
+    public function home(EntityManagerInterface $entityManager): Response
+    {   
+        // Recuperer les articles non archives et envoyer les a la vue twig
+        $articles = $entityManager->getRepository(Article::class)->findBy(['deletedAt' => null]);
+        
+
+        return $this->render("default/home.html.twig", [
+            'articles' => $articles
+        ]);
     }
 }
